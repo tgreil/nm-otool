@@ -6,7 +6,7 @@
 #    By: tgreil <tgreil@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/02/10 13:32:03 by tgreil            #+#    #+#              #
-#    Updated: 2018/04/27 16:31:25 by tgreil           ###   ########.fr        #
+#    Updated: 2019/11/18 04:38:28 by sclolus          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -68,6 +68,7 @@ SRCS	=	ft_memset.c				\
 			ft_toupper.c			\
 			ft_tolower.c			\
 			ft_memalloc.c			\
+			ft_realloc.c			\
 			ft_memdel.c				\
 			ft_strnew.c				\
 			ft_strdel.c				\
@@ -102,7 +103,8 @@ SRCS	=	ft_memset.c				\
 			ft_convert_base.c		\
 			ft_atoi_base.c			\
 			ft_print_memory.c		\
-			get_next_line.c
+			get_next_line.c			\
+			ft_atof.c
 
 SRCS	+=	$(addprefix ft_printf/, $(FT_PRINTF_SRCS))
 
@@ -111,6 +113,9 @@ OBJS	=	$(addprefix srcs/, $(SRCS:.c=.o))
 $(NAME):	 $(OBJS)
 		ar rc $(NAME) $(OBJS)
 		ranlib $(NAME)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 all:		$(NAME)
 
