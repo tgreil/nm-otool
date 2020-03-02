@@ -57,11 +57,11 @@ $(LIB):
 all:	$(PROJECT)
 
 clean:
-	$(RM) $(OBJS)
+	$(RM) $(OBJS_UTIL) $(OBJS_NM) $(OBJS_OTOOL)
 	$(MAKELIB) clean
 
 fclean:
-	$(RM) $(OBJS)
+	$(RM) $(OBJS_UTIL) $(OBJS_NM) $(OBJS_OTOOL)
 	$(MAKELIB) fclean
 	$(RM) $(NM) $(OTOOL)
 
