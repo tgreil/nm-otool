@@ -12,18 +12,92 @@
 
 #include "nm.h"
 
+// TO REMOVE
+#include <stdio.h>
+
+void	ft_nm_print_64_onetype(struct nlist_64 *symoff)
+{
+	char	ctp;
+
+	ft_printf("%zx ", symoff->n_type);
+	if (symoff->n_sect == NO_SECT)
+	{
+		ctp = 'A';
+		ctp = 'U';
+	}
+	else
+	{
+
+		if (symoff->n_type == N_SECT)
+			ctp = 't';
+		else
+			ctp = 'T';
+	}
+	ft_printf("%c ", ctp);
+}
+
+void	ft_nm_print_64_one(char *content, struct nlist_64 *symoff, struct symtab_command *sc)
+{
+	if (symoff->n_value > 0)
+		ft_printf("%016zx ", symoff->n_value);
+	else
+		ft_printf("%16s ", "");
+	ft_nm_print_64_onetype(symoff);
+	ft_printf("%s\n", content + sc->stroff + symoff->n_un.n_strx);
+}
+
+struct nlist_64	*ft_nm_symoff_copy(struct nlist_64 *symoff, size_t size)
+{
+	struct nlist_64	*symoff_copy;
+	size_t			i;
+
+	i = 0;
+	if (!(symoff_copy = malloc(sizeof(struct nlist_64) * size)))
+		return (NULL);
+	while (i < size)
+	{
+		ft_memcpy(&symoff_copy[i], &symoff[i], sizeof(struct nlist_64));
+		i++;
+	}
+	return (symoff_copy);
+}
+
+void	ft_nm_symoff_sort(struct nlist_64 *symoff, size_t size, char * content, size_t stroff)
+{
+	struct nlist_64	tmp;
+	size_t			i;
+
+	i = 0;
+
+	while (size > 1 && i + 1 < size)
+	{
+		if (ft_strcmp(content + stroff + symoff[i].n_un.n_strx,
+				content + stroff + symoff[i + 1].n_un.n_strx) > 0)
+		{
+			tmp = symoff[i];
+			symoff[i] = symoff[i + 1];
+			symoff[i + 1] = tmp;
+			i = 0;
+		}
+		else
+			i++;
+	}
+}
+
 int		ft_nm_print_64(char *content, struct symtab_command *sc)
 {
-	int				tab[sc->nsyms];
 	struct nlist_64	*symoff;
+	struct nlist_64	*symoff_copy;
 	uint32_t		i;
 
 	i = 0;
-	ft_bzero((void *)tab, sizeof(int) * sc->nsyms);
 	symoff = (struct nlist_64 *)(content + sc->symoff);
+	if (!(symoff_copy = ft_nm_symoff_copy(symoff, sc->symoff)))
+		return (EXIT_ERROR);
+	ft_nm_symoff_sort(symoff_copy, sc->nsyms, content, sc->stroff);
 	while (i < sc->nsyms)
 	{
-		ft_printf("%s\n", content + sc->stroff + symoff[tab[i]].n_un.n_strx);
+		ft_nm_print_64_one(content, &symoff_copy[i], sc);
 		i++;
 	}
 	return (EXIT_SUCCESS);
@@ -47,7 +121,12 @@ int		ft_nm_parse_64(char *content)
 		i++;
 	}
 	sc = (struct symtab_command *)lc;
-	ft_nm_print_64(content, sc);
+	if (lc->cmd != LC_SYMTAB)
+	{
+		ft_printf("!2!Unable to find symtab in load command\n");
+		return (EXIT_ERROR);
+	}
+	ft_nm_print_64(content, sc);	
 	return (EXIT_SUCCESS);
 }
 
@@ -56,6 +135,16 @@ int		ft_nm_parse(char *content)
 	struct mach_header	*mh;
 
 	mh = (struct mach_header *)content;
+/*	printf("\
+Mach_Header structure:\n\
+magic:%u\n\
+cputype:%u\n\
+cpusubtype:%u\n\
+filetype:%u\n\
+ncmds:%u\n\
+sizeofcmds:%u\n\
+flags:%u\n\
+", mh->magic, mh->cputype, mh->cpusubtype, mh->filetype, mh->ncmds, mh->sizeofcmds, mh->flags);*/
 	if (mh->magic == MH_MAGIC_64)
 		ft_nm_parse_64(content);
 	return (EXIT_SUCCESS);
@@ -90,7 +179,8 @@ int		main(int ac, char **av)
 	{
 		while (i_av < ac)
 		{
-			ft_printf("%s%s:\n", ac > 2 ? "\n" : "", av[i_av]);
+			if (ac > 2)
+				ft_printf("\n%s:\n", av[i_av]);
 			ft_nm(av[i_av]);
 			i_av++;
 		}
